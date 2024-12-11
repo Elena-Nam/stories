@@ -36,22 +36,6 @@ const  App = () => {
     
   const [searchTerm, setSearchTerm] = useStorageState(
     'search','React');
-  /*
-  const [searchTerm, setSearchTerm] = React.useState (
-  localStorage.getItem('search') || 'React'
-  );
-
-  React.useEffect(() => {
-    localStorage.setItem('search', searchTerm);
-    }, [searchTerm]);
-
-  const handleSearch = (event) => {
-    console.log(event.target.value);
-    setSearchTerm(event.target.value);
-
-    localStorage.setItem('search', event.target.value);
-  };
-*/
 
   const handleSearch = (event) => {
   setSearchTerm(event.target.value);
@@ -65,8 +49,15 @@ const  App = () => {
   <h1>My Hacker Stories</h1>
   <h2>It is {new Date().toLocaleTimeString()}.</h2>
 
-  <Search onSearch = {handleSearch} search={searchTerm}/>
-  <hr />
+  <InputWithLabel
+  id = "search"
+  value = {searchTerm}
+  onInputChange = {handleSearch}>
+  <strong> Search: </strong>
+  </InputWithLabel>
+  
+
+  <hr/>
 
   <List list = {searchedStories}/>
   </div>
@@ -91,18 +82,26 @@ const List = ({list}) => (
     </li>
   );
 
-  const Search = ({search, onSearch}) => {
-    
-  return (
-  <>
-  <label htmlFor="search">Search: </label>
-  <input id="search" type="text" value={search} onChange={onSearch} />
+const InputWithLabel = ({
+  id,
+  label,
+  value,
+  type ='text',
+  onInputChange,
+  children,
+}) => (
+<>
+<label htmlFor='id'> {children} </label>
+&nbsp;
+<input
+id = {id}
+type = {type}
+value = {value}
+onChange = {onInputChange}
+/>
+</>
+);
 
-  <p>
-  Searching for <strong>{search}</strong>
-  </p>
-  </>
-  );
-}
+
   
 export default App;
