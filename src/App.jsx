@@ -13,9 +13,7 @@ const [value, setValue] = React.useState (
   return [value, setValue];
   };
 
-
-const  App = () => {
-  const stories = [
+  const initialStories = [
     {
     title: 'React',
     /*url: 'https://reactjs.org/',*/
@@ -33,9 +31,12 @@ const  App = () => {
     objectID: 1,
   },
   ];
-    
+const  App = () => {
+ 
   const [searchTerm, setSearchTerm] = useStorageState(
     'search','React');
+  
+  const [stories, setStories] = useStorageState('stories',initialStories);
 
   const handleSearch = (event) => {
   setSearchTerm(event.target.value);
@@ -43,6 +44,14 @@ const  App = () => {
 
   const searchedStories = stories.filter((story) => story.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
+  
+    const handleRemoveStory = (item) => {
+      const newStories = stories.filter(
+      (story) => item.objectID !== story.objectID
+      );
+
+      setStories(newStories);
+    }
 
   return (
   <div>
@@ -60,29 +69,37 @@ const  App = () => {
 
   <hr/>
 
-  <List list = {searchedStories}/>
+  <List list = {searchedStories} onRemoveItem={handleRemoveStory}/>
   </div>
 );
 }
 
-const List = ({list}) => (
-  <ul>
-  {list.map((item) => (
-  <Item key={item.objectID} item = {item}/>
-  ))}
-  </ul>
-  );
-  const Item = ({item}) => (
-    <li>
-    <span>
-    <a href={item.url}>{item.title}</a>
-    </span>
-    <span>{item.author}</span>
-    <span>{item.num_comments}</span>
-    <span>{item.points}</span>
-    </li>
-  );
 
+const List = ({list, onRemoveItem}) => (
+  <ul>
+    {list.map((item) => (
+    <Item key={item.objectID} item = {item} onRemoveItem ={onRemoveItem}/>
+    ))}
+    </ul>
+    );
+  const Item = ({item, onRemoveItem}) => {
+    const handleRemoveItem = () => {
+      onRemoveItem(item);
+      };
+    return (
+    <li>
+      <span>
+      <a href = {item.url}> {item.title} </a>
+      </span>
+      <span> {item.author} </span>
+      <span> {item.num_comments} </span>
+      <span> {item.points} </span>
+      <span>
+        <button type="button" onClick={() => onRemoveItem(item)}> Dismiss </button>
+      </span>
+    </li>
+    );
+  };
 const InputWithLabel = ({
   id,
   value,
@@ -92,24 +109,24 @@ const InputWithLabel = ({
   children,
 }) => {
 
-const inputRef = React.useRef();
-React.useEffect (() => {
-  if (isFocused && inputRef.current) {
-  inputRef.current.focus();
+  const inputRef = React.useRef();
+  React.useEffect (() => {
+    if (isFocused && inputRef.current) {
+    inputRef.current.focus();
 }
 }, [isFocused]);
 
 return (
 <>
-<label htmlFor='id'> {children} </label>
-&nbsp;
-<input
-ref={inputRef}
-id = {id}
-type = {type}
-value = {value}
-onChange = {onInputChange}
-/>
+  <label htmlFor='id'> {children} </label>
+  &nbsp;
+  <input
+  ref={inputRef}
+  id = {id}
+  type = {type}
+  value = {value}
+  onChange = {onInputChange}
+  />
 </>
 );
 };
