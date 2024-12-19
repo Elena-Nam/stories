@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-
+/* custom hook
 const useStorageState = (key, initialState) => {
 const [value, setValue] = React.useState (
   localStorage.getItem('key') || initialState
@@ -12,7 +12,7 @@ const [value, setValue] = React.useState (
 
   return [value, setValue];
   };
-
+*/
   const initialStories = [
     {
     title: 'React',
@@ -31,45 +31,78 @@ const [value, setValue] = React.useState (
     objectID: 1,
   },
   ];
+
+const getAsyncStories = () =>
+  new Promise ((resolve) =>
+    setTimeout (
+    () => resolve ({ data: { stories: initialStories } }),
+    2000)
+  );
+
 const  App = () => {
- 
+ /* custom hook 
   const [searchTerm, setSearchTerm] = useStorageState(
     'search','React');
   
   const [stories, setStories] = useStorageState('stories',initialStories);
+*/
+
+  const [searchTerm, setSearchTerm] = React.useState (
+    localStorage.getItem ('search') || 'React');
+
+  const [stories, setStories] = React.useState ([]);
+  const [isLoading, setIsLoading] = React.useState (false);
+  const [isError, setIsError] = React.useState (false);
+
+  React.useEffect (() => {
+    setIsLoading (true);
+    getAsyncStories ()
+    .then (result => {
+      setStories (result.data.stories);
+    setIsLoading (false);
+    })
+    .catch(() => setIsError (true));
+    }, []);
+
+  React.useEffect (() => {
+    localStorage.setItem ('search', searchTerm);
+  }, [searchTerm]);
+  
 
   const handleSearch = (event) => {
-  setSearchTerm(event.target.value);
+    setSearchTerm (event.target.value);
   };
 
-  const searchedStories = stories.filter((story) => story.title.toLowerCase().includes(searchTerm.toLowerCase())
+  const searchedStories = stories.filter ((story) => story.title.toLowerCase().includes (searchTerm.toLowerCase())
     );
   
     const handleRemoveStory = (item) => {
-      const newStories = stories.filter(
-      (story) => item.objectID !== story.objectID
-      );
+      const newStories = stories.filter (
+      (story) => item.objectID !== story.objectID);
 
       setStories(newStories);
     }
 
   return (
   <div>
-  <h1>My Hacker Stories</h1>
-  <h2>It is {new Date().toLocaleTimeString()}.</h2>
+    <h1>My Hacker Stories</h1>
+    <h2>It is {new Date().toLocaleTimeString()}.</h2>
 
-  <InputWithLabel
-  id = "search"
-  value = {searchTerm}
-  isFocused
-  onInputChange = {handleSearch}>
-  <strong> Search: </strong>
-  </InputWithLabel>
+    <InputWithLabel
+    id = "search"
+    value = {searchTerm}
+    isFocused
+    onInputChange = {handleSearch}>
+    <strong> Search: </strong>
+    </InputWithLabel>
   
+    <hr/>
 
-  <hr/>
+    {isError && <p> Something went wrong ... </p>}
+    {isLoading ? ( <p>Loading ...</p> ) : (
+    <List list = {searchedStories} onRemoveItem = {handleRemoveStory} />
+    )}
 
-  <List list = {searchedStories} onRemoveItem={handleRemoveStory}/>
   </div>
 );
 }
@@ -77,14 +110,14 @@ const  App = () => {
 
 const List = ({list, onRemoveItem}) => (
   <ul>
-    {list.map((item) => (
-    <Item key={item.objectID} item = {item} onRemoveItem ={onRemoveItem}/>
+    {list.map ((item) => (
+    <Item key = {item.objectID} item = {item} onRemoveItem = {onRemoveItem}/>
     ))}
     </ul>
     );
   const Item = ({item, onRemoveItem}) => {
     const handleRemoveItem = () => {
-      onRemoveItem(item);
+      onRemoveItem (item);
       };
     return (
     <li>
@@ -95,7 +128,7 @@ const List = ({list, onRemoveItem}) => (
       <span> {item.num_comments} </span>
       <span> {item.points} </span>
       <span>
-        <button type="button" onClick={() => onRemoveItem(item)}> Dismiss </button>
+        <button type="button" onClick = {() => onRemoveItem (item)}> Dismiss </button>
       </span>
     </li>
     );
