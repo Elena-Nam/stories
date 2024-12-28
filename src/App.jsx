@@ -1,18 +1,5 @@
 import * as React from 'react';
 
-/* custom hook
-const useStorageState = (key, initialState) => {
-const [value, setValue] = React.useState (
-  localStorage.getItem('key') || initialState
-  );
-
-  React.useEffect(() => {
-    localStorage.setItem(key, value);
-    }, [value, key]);
-
-  return [value, setValue];
-  };
-*/
   const initialStories = [
     {
     title: 'React',
@@ -39,6 +26,17 @@ const getAsyncStories = () =>
     2000)
   );
 
+const storiesReducer = (state, action) => {
+  switch (action.type) {
+    case 'SET_STORIES':
+      return action.payload;
+    case 'REMOVE_STORY':
+      return state.filter ((story) => action.payload.objectID !== story.objectID);
+    default:
+     throw new Error();
+  }
+};
+
 const  App = () => {
  /* custom hook 
   const [searchTerm, setSearchTerm] = useStorageState(
@@ -50,7 +48,7 @@ const  App = () => {
   const [searchTerm, setSearchTerm] = React.useState (
     localStorage.getItem ('search') || 'React');
 
-  const [stories, setStories] = React.useState ([]);
+  const [stories, dispatchStories] = React.useReducer (storiesReducer, []);
   const [isLoading, setIsLoading] = React.useState (false);
   const [isError, setIsError] = React.useState (false);
 
@@ -58,7 +56,10 @@ const  App = () => {
     setIsLoading (true);
     getAsyncStories ()
     .then (result => {
-      setStories (result.data.stories);
+      dispatchStories ({
+        type: 'SET_STORIES',
+        payload: result.data.stories,
+      });
     setIsLoading (false);
     })
     .catch(() => setIsError (true));
@@ -76,12 +77,24 @@ const  App = () => {
   const searchedStories = stories.filter ((story) => story.title.toLowerCase().includes (searchTerm.toLowerCase())
     );
   
+    /*
     const handleRemoveStory = (item) => {
       const newStories = stories.filter (
       (story) => item.objectID !== story.objectID);
 
-      setStories(newStories);
-    }
+      dispatchStories ({
+        type: "SET_STORIES",
+        payload: newStories,
+      });
+    };
+*/
+
+const handleRemoveStory = (item) => {
+  dispatchStories ({
+    type: 'REMOVE_STORY',
+    payload: item,
+  });
+};
 
   return (
   <div>
