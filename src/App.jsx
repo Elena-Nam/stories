@@ -1,4 +1,5 @@
 import * as React from 'react';
+import axios from 'axios';
 
 const storiesReducer = (state, action) => {
   switch (action.type) {
@@ -52,7 +53,7 @@ const  App = () => {
     const [url, setUrl] = React.useState(`${API_ENDPOINT}${searchTerm}`);
 
   const [stories, dispatchStories] = React.useReducer (storiesReducer, { data: [], isLoading: false, isError: false });
-  
+  /*
   const handleFetchStories = React.useCallback (() => {
 
     dispatchStories({ type: 'STORIES_FETCH_INIT' });
@@ -69,7 +70,26 @@ const  App = () => {
       dispatchStories({ type: 'STORIES_FETCH_FAILURE' })
       );
       }, [url]);
+*/
   
+
+  const handleFetchStories = React.useCallback (() => {
+
+    dispatchStories({ type: 'STORIES_FETCH_INIT' });
+    axios
+      .get(url)
+      .then((result) => {
+          dispatchStories({
+          type: 'STORIES_FETCH_SUCCESS',
+          payload: result.data.hits, 
+          });
+          })
+          .catch(() =>
+          dispatchStories({ type: 'STORIES_FETCH_FAILURE' })
+          );
+          }, [url]);
+    
+
   React.useEffect(() => {
     handleFetchStories();
   }, [handleFetchStories]);
@@ -134,7 +154,7 @@ const Item = ({item, onRemoveItem}) => {
       <span> {item.num_comments} </span>
       <span> {item.points} </span>
       <span>
-        <button type="button" onClick = {() => onRemoveItem (item)}> Dismiss </button>
+        <button type="button" onClick={handleRemoveItem}> Dismiss </button>
       </span>
     </li>
     );
