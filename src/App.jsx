@@ -1,4 +1,5 @@
 import * as React from 'react';
+import axios from 'axios';
 
 const storiesReducer = (state, action) => {
   switch (action.type) {
@@ -52,7 +53,7 @@ const  App = () => {
     const [url, setUrl] = React.useState(`${API_ENDPOINT}${searchTerm}`);
 
   const [stories, dispatchStories] = React.useReducer (storiesReducer, { data: [], isLoading: false, isError: false });
-  
+  /*
   const handleFetchStories = React.useCallback (() => {
 
     dispatchStories({ type: 'STORIES_FETCH_INIT' });
@@ -69,7 +70,24 @@ const  App = () => {
       dispatchStories({ type: 'STORIES_FETCH_FAILURE' })
       );
       }, [url]);
+*/
   
+
+  const handleFetchStories = React.useCallback (async() => {
+    dispatchStories({ type: 'STORIES_FETCH_INIT' });
+    
+    try {
+      const result = await axios.get(url);
+          dispatchStories({
+          type: 'STORIES_FETCH_SUCCESS',
+          payload: result.data.hits, 
+          });
+    } catch {
+          dispatchStories({ type: 'STORIES_FETCH_FAILURE' })
+    }
+  }, [url]);
+    
+
   React.useEffect(() => {
     handleFetchStories();
   }, [handleFetchStories]);
@@ -83,26 +101,40 @@ const  App = () => {
       
   
 const handleSearchInput = (event) => {
-setSearchTerm(event.target.value);
+  setSearchTerm(event.target.value);
 };
 
-const handleSearchSubmit = () => {
-setUrl(`${API_ENDPOINT}${searchTerm}`);
+const handleSearchSubmit = (event) => {
+  setUrl(`${API_ENDPOINT}${searchTerm}`);
+  event.preventDefault();
 };
 
+//separate the whole form into a new SearchForm component(the form can gets extracted from return into its own component)
+const SearchForm = ({searchTerm, onSearchInput, onSearchSubmit,}) => (
+
+  <form onSubmit = {handleSearchSubmit}>
+    <InputWithLabel
+      id = "search"
+      value = {searchTerm}
+      isFocused
+      onInputChange = {onSearchInput}>
+      <strong> Search: </strong>
+    </InputWithLabel>
+
+    <button type ="submit" disabled = {!searchTerm}> Submit </button>
+  </form>
+);
   return (
   <div>
     <h1>My Hacker Stories</h1>
     <h2>It is {new Date().toLocaleTimeString()}.</h2>
+        
+    <SearchForm
+      searchTerm={searchTerm}
+      onSearchInput={handleSearchInput}
+      onSearchSubmit={handleSearchSubmit}
+    />
 
-    <InputWithLabel
-    id = "search"
-    value = {searchTerm}
-    isFocused
-    onInputChange = {handleSearchInput}>
-    <strong> Search: </strong>
-    </InputWithLabel>
-    <button type ="button" disabled = {!searchTerm} onClick = {handleSearchSubmit}> Submit </button>
     <hr/>
 
     {stories.isError && <p> Something went wrong ... </p>}
@@ -134,7 +166,7 @@ const Item = ({item, onRemoveItem}) => {
       <span> {item.num_comments} </span>
       <span> {item.points} </span>
       <span>
-        <button type="button" onClick = {() => onRemoveItem (item)}> Dismiss </button>
+        <button type="button" onClick={handleRemoveItem}> Dismiss </button>
       </span>
     </li>
     );
