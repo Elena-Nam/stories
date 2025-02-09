@@ -1,5 +1,6 @@
-import * as React from 'react';
+import * as React from 'react'; 
 import axios from 'axios';
+import { sortBy } from 'lodash';
 
 const storiesReducer = (state, action) => {
   switch (action.type) {
@@ -50,29 +51,10 @@ const  App = () => {
   const [searchTerm, setSearchTerm] = useStorageState (
     'search','React');
 
-    const [url, setUrl] = React.useState(`${API_ENDPOINT}${searchTerm}`);
+  const [url, setUrl] = React.useState(`${API_ENDPOINT}${searchTerm}`);
 
   const [stories, dispatchStories] = React.useReducer (storiesReducer, { data: [], isLoading: false, isError: false });
-  /*
-  const handleFetchStories = React.useCallback (() => {
-
-    dispatchStories({ type: 'STORIES_FETCH_INIT' });
-
-    fetch(url)
-    .then((response) => response.json())
-    .then((result) => {
-      dispatchStories({
-      type: 'STORIES_FETCH_SUCCESS',
-      payload: result.hits, 
-      });
-      })
-      .catch(() =>
-      dispatchStories({ type: 'STORIES_FETCH_FAILURE' })
-      );
-      }, [url]);
-*/
   
-
   const handleFetchStories = React.useCallback (async() => {
     dispatchStories({ type: 'STORIES_FETCH_INIT' });
     
@@ -146,31 +128,75 @@ const SearchForm = ({searchTerm, onSearchInput, onSearchSubmit,}) => (
 );
 }
 
-const List = ({list, onRemoveItem}) => (
+const SORTS = {
+  NONE: (list) => list,
+  TITLE: (list) => sortBy(list, 'title'),
+  AUTHOR: (list) => sortBy(list, 'author'),
+  COMMENT: (list) => sortBy(list, 'num_comments').reverse(),
+  POINT: (list) => sortBy(list, 'points').reverse(),
+  };
+
+const List = ({list, onRemoveItem}) => {
+  const[sort, setSort] = React.useState('NONE');
+
+  const handleSort = (sortKey) => {
+    setSort(sortKey);
+  };
+
+  const sortFunction = SORTS[sort];
+  const sortedList = sortFunction(list);
+  return(
   <ul>
-    {list.map ((item) => (
+     <li style={{ display: 'flex' }}>
+      <span style={{ width: '40%' }}>
+        <button type="button" onClick={() => handleSort('TITLE')}>
+          Title
+        </button>
+      </span>
+      <span style={{ width: '30%' }}>
+        <button type="button" onClick={() => handleSort('AUTHOR')}>
+          Author
+        </button>
+      </span>
+      <span style={{ width: '10%' }}>
+        <button type="button" onClick={() => handleSort('COMMENT')}>
+          Comments
+        </button>
+      </span>
+      <span style={{ width: '10%' }}>
+        <button type="button" onClick={() => handleSort('POINT')}>
+          Points
+        </button>
+      </span>
+      <span style={{ width: '10%' }}>Actions</span>
+      </li>
+
+    {sortedList.map ((item) => (
     <Item key = {item.objectID} item = {item} onRemoveItem = {onRemoveItem}/>
     ))}
-    </ul>
-    );
+  </ul>
+  );
+};
+
 const Item = ({item, onRemoveItem}) => {
   const handleRemoveItem = () => {
     onRemoveItem (item);
   };
-    return (
-    <li>
-      <span>
-      <a href = {item.url}> {item.title} </a>
+  return (
+    <li style={{ display: 'flex' }}>
+      <span style={{ width: '40%' }}>
+        <a href = {item.url}> {item.title} </a>
       </span>
-      <span> {item.author} </span>
-      <span> {item.num_comments} </span>
-      <span> {item.points} </span>
-      <span>
+      <span style={{ width: '30%' }}>{item.author}</span>
+      <span style={{ width: '10%' }}>{item.num_comments}</span>
+      <span style={{ width: '10%' }}>{item.points}</span>
+      <span style={{ width: '10%' }}>
         <button type="button" onClick={handleRemoveItem}> Dismiss </button>
       </span>
     </li>
     );
   };
+
 const InputWithLabel = ({
   id,
   value,
